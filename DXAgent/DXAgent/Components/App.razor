@@ -15,6 +15,14 @@
 <body>
     <Routes />
     <script src="_framework/blazor.web.js"></script>
+    <script>
+        function resizeTextArea(element, heightSource) {
+            if (element) {
+                element.style.height = 'auto';
+                element.style.height = heightSource.scrollHeight + 'px';
+            }
+        }
+    </script>
 </body>
 
 </html>

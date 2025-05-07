@@ -1,0 +1,90 @@
+﻿@page "/chat"
+@inject IJSRuntime JS
+@attribute [StreamRendering]
+@rendermode InteractiveServer
+@inject IFastGPTAPI fastGPTAPI
+
+@using Markdig
+@using System.Text
+
+<h1 style="display:flex; align-self:center">Chat With An Agent</h1>
+<br/>
+<br/>
+
+<div class="chat-box-wrap">
+	<div class="dialog-overlay">
+		<div class="dialog-box">
+			<div class="history-area">
+				@foreach (var history in this.fastGPTAPI.Histories)
+				{
+					<div class="chat-history-box">
+						<div style="margin-left: 3%; margin-right: 3%; font-weight: bold; font-size: 20px; font-family: 'Cascadia Code';
+							@(history.ChatRole == ChatRole.Assistant ? "text-align: left;" : "text-align: right")">
+							@history.ChatRole.ToString()
+						</div>
+						<div class="history-content" style="@(history.ChatRole == ChatRole.User ? "margin-left: auto" : "")">
+							@((MarkupString)RenderMarkdown(history.Content ?? ""))
+						</div>
+					</div>
+				}
+			</div>
+			<div class="chat-input-box" @ref="inputBoxRef">
+				<textarea 
+				oninput="@OnInput"
+				@ref="textAreaRef"
+				@bind="userInput"
+				rows="1"
+				placeholder="talk to the assistant..."
+				class="chat-input"/>
+
+				<button onclick="@OnMouseClick" class="btn btn-primary btn-lg" style="line-height: 100%">Submit</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+@code {
+	private ElementReference inputBoxRef;
+	private ElementReference textAreaRef;
+
+	private string userInput = "";
+
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		if (firstRender)
+		{
+			await JS.InvokeVoidAsync("resizeTextArea", inputBoxRef, textAreaRef);
+			StateHasChanged();
+		}
+
+		return;
+	}
+
+	public async Task OnInput()
+	{
+		await JS.InvokeVoidAsync("resizeTextArea", inputBoxRef, textAreaRef);
+	}
+
+	private async Task OnMouseClick()
+	{
+		var input = userInput;
+		this.userInput = "";
+
+		StringBuilder stringBuilder = new();
+
+		await this.fastGPTAPI.SendChatRequest(prompt: input, content => {
+			StateHasChanged();
+		}, stateChange: StateHasChanged);
+
+		StateHasChanged();
+		return;
+	}
+
+	private string RenderMarkdown(string markdown)
+	{
+		var pipeline = new MarkdownPipelineBuilder()
+						.UseAdvancedExtensions() // Enable advanced features (like code highlighting, etc.)
+						.Build();
+		return Markdown.ToHtml(markdown, pipeline);
+	}
+}
