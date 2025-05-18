@@ -94,7 +94,7 @@ namespace DXAgent
                 // chatId = undefined
                 stream = true,
                 detail = false,
-                messages = this._histories
+                messages = this._histories[..^1]
             }, jsonOptions);
 
             var content = new StringContent(json, encoding: Encoding.UTF8, mediaType: "application/json");

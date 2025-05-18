@@ -37,7 +37,7 @@
 				placeholder="talk to the assistant..."
 				class="chat-input"/>
 
-				<button onclick="@OnMouseClick" class="btn btn-primary btn-lg" style="line-height: 100%">Submit</button>
+				<button onclick="@OnMouseClick" disabled="@IsSubmitting" class="btn btn-primary btn-lg" style="line-height: 100%">Submit</button>
 			</div>
 		</div>
 	</div>
@@ -48,6 +48,8 @@
 	private ElementReference textAreaRef;
 
 	private string userInput = "";
+
+	private bool IsSubmitting { get; set; } = false;
 
 	protected override async Task OnAfterRenderAsync(bool firstRender)
 	{
@@ -67,6 +69,7 @@
 
 	private async Task OnMouseClick()
 	{
+		IsSubmitting = true;
 		var input = userInput;
 		this.userInput = "";
 
@@ -77,6 +80,7 @@
 		}, stateChange: StateHasChanged);
 
 		StateHasChanged();
+		IsSubmitting = false;
 		return;
 	}
 

@@ -8,11 +8,17 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents()
     .AddInteractiveWebAssemblyComponents();
 
+builder.Configuration
+    .AddUserSecrets<Program>()
+    .AddEnvironmentVariables();
+
+string apiKey = builder.Configuration["FAST_GPT_KEY"] ?? throw new InvalidOperationException("FAST_GPT_KEY environment variable is not set.");
+
 builder.Services.AddSingleton<IFastGPTAPI>(service =>
 {
     return new FastGPTAPI(
         new Uri("http://113.47.2.75:3000"),
-        apikey: "fastgpt-q4PqjgMWmqLDdP5L8ofJdj1ldi1Da7uCofJwo52MPReTByNMYPu6Wgd");
+        apikey: apiKey);
 });
 
 var app = builder.Build();
