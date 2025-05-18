@@ -14,7 +14,7 @@ builder.Configuration
 
 string apiKey = builder.Configuration["FAST_GPT_KEY"] ?? throw new InvalidOperationException("FAST_GPT_KEY environment variable is not set.");
 
-builder.Services.AddSingleton<IFastGPTAPI>(service =>
+builder.Services.AddScoped<IFastGPTAPI>(service =>
 {
     return new FastGPTAPI(
         new Uri("http://113.47.2.75:3000"),
