@@ -21,6 +21,8 @@ builder.Services.AddScoped<IFastGPTAPI>(service =>
         apikey: apiKey);
 });
 
+builder.Services.AddSingleton<IPromptTemplate, PromptTemplate>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

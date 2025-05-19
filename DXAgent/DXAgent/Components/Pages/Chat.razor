@@ -3,6 +3,8 @@
 @attribute [StreamRendering]
 @rendermode InteractiveServer
 @inject IFastGPTAPI fastGPTAPI
+@inject IPromptTemplate promptTemplate
+@inject ILogger<Chat> logger
 
 @using Markdig
 @using System.Text
@@ -14,6 +16,14 @@
 <div class="chat-box-wrap">
 	<div class="dialog-overlay">
 		<div class="dialog-box">
+			<div style="display: flex; height: 50px; margin-left:3%; margin-right: 3%; margin-top: 20px; border: solid 3px; border-color: gainsboro; border-radius: 10px; max-width: 100%; width: fit-content;">
+				<label style="margin-left: 2%; align-self:center; font-weight: 1000; margin-right: 20px;">需要我做些什么？</label>
+				<select @bind="SelectedOption" class="form-select" style="align-self: center; max-width: 50%; height: 90%;">
+					<option value="Chat">和我聊天……</option>
+					<option value="CodeExplain">解释我的代码……</option>
+					<option value="Rewrite">改写我的文本……</option>
+				</select>
+			</div>
 			<div class="history-area">
 				@foreach (var history in this.fastGPTAPI.Histories)
 				{
@@ -30,9 +40,9 @@
 			</div>
 			<div class="chat-input-box" @ref="inputBoxRef">
 				<textarea 
-				oninput="@OnInput"
 				@ref="textAreaRef"
 				@bind="userInput"
+				oninput="@OnInput"
 				rows="1"
 				placeholder="talk to the assistant..."
 				class="chat-input"/>
@@ -49,18 +59,8 @@
 
 	private string userInput = "";
 
+	private string SelectedOption { get; set; } = "Chat";
 	private bool IsSubmitting { get; set; } = false;
-
-	protected override async Task OnAfterRenderAsync(bool firstRender)
-	{
-		if (firstRender)
-		{
-			await JS.InvokeVoidAsync("resizeTextArea", inputBoxRef, textAreaRef);
-			StateHasChanged();
-		}
-
-		return;
-	}
 
 	public async Task OnInput()
 	{
@@ -71,11 +71,21 @@
 	{
 		IsSubmitting = true;
 		var input = userInput;
+		string prompt = "";
+		try
+		{
+			var type = Enum.Parse<PromptTemplateType>(SelectedOption, ignoreCase: true);
+			prompt = this.promptTemplate.FromRaw(userInput, type);	
+		}
+		catch (ArgumentException e)
+		{
+			logger.LogError("Invalid argument: {Message}", e.Message);
+			IsSubmitting = false;
+			return;
+		}
 		this.userInput = "";
 
-		StringBuilder stringBuilder = new();
-
-		await this.fastGPTAPI.SendChatRequest(prompt: input, content => {
+		await this.fastGPTAPI.SendChatRequest(prompt: prompt, content => {
 			StateHasChanged();
 		}, stateChange: StateHasChanged);
 

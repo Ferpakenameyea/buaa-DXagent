@@ -88,7 +88,7 @@ h1:focus {
     box-shadow: 0 4px 6px rgba(0, 0, 0, 1);
     background-color: white;
     width: 90%;
-    height: 90%;
+    height: 80%;
     border-radius: 15px;
     text-align: center;
 
@@ -131,7 +131,7 @@ h1:focus {
     left: 50%;
     transform: translateX(-50%);
     top: 5%;
-    height: 85%;
+    height: 75%;
     flex-direction: column;
     overflow-y: auto;
     gap: 5px;
